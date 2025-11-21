@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-wallet-copilot
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-wallet-copilot
+  template:
+    metadata:
+      labels:
+        app: ai-wallet-copilot
+    spec:
+      containers:
+        - name: ai-wallet-copilot
+          image: your-registry/ai-wallet-copilot:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+            requests:
+              cpu: "0.5"
+              memory: "256Mi"

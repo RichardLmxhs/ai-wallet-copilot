@@ -1,0 +1,109 @@
+# 应用主配置
+app:
+  name: ai-wallet-copilot
+  version: 0.1.0
+  port: 8080
+  environment: local # local, dev, staging, prod
+  log_level: info # debug, info, warn, error
+  enable_cors: true
+  request_timeout: 30s
+  shutdown_timeout: 10s
+
+# 服务器配置
+server:
+  read_timeout: 15s
+  write_timeout: 15s
+  idle_timeout: 60s
+  max_header_bytes: 1048576 # 1MB
+
+# AI 服务配置
+ai:
+  provider: openai # openai, anthropic, azure
+  api_key: ${AI_API_KEY:your-api-key} # 支持环境变量
+  base_url: https://api.openai.com/v1
+  model: gpt-4
+  temperature: 0.7
+  max_tokens: 2000
+  timeout: 30s
+  retry_count: 3
+  retry_delay: 1s
+
+# 区块链配置
+chains:
+  ethereum:
+    mainnet:
+      rpc_url: ${ETH_MAINNET_RPC:https://mainnet.infura.io/v3/your-key}
+      chain_id: 1
+      timeout: 10s
+      max_retries: 3
+    goerli:
+      rpc_url: ${ETH_GOERLI_RPC:https://goerli.infura.io/v3/your-key}
+      chain_id: 5
+      timeout: 10s
+      max_retries: 3
+  polygon:
+    mainnet:
+      rpc_url: ${POLYGON_MAINNET_RPC:https://polygon-rpc.com}
+      chain_id: 137
+      timeout: 10s
+      max_retries: 3
+
+# 数据库配置
+database:
+  host: ${DB_HOST:localhost}
+  port: ${DB_PORT:5432}
+  user: ${DB_USER:postgres}
+  password: ${DB_PASSWORD:postgres123}
+  dbname: ${DB_NAME:appdb}
+  sslmode: disable
+  max_open_conns: 25
+  max_idle_conns: 10
+  conn_max_lifetime: 5m
+  conn_max_idle_time: 10m
+  log_level: warn # silent, error, warn, info
+  slow_threshold: 200ms
+
+# Redis 缓存配置
+redis:
+  host: ${REDIS_HOST:localhost}
+  port: ${REDIS_PORT:6379}
+  password: ${REDIS_PASSWORD:}
+  db: ${REDIS_DB:0}
+  pool_size: 10
+  min_idle_conns: 5
+  max_retries: 3
+  dial_timeout: 5s
+  read_timeout: 3s
+  write_timeout: 3s
+  pool_timeout: 4s
+  idle_timeout: 5m
+
+# JWT 认证配置
+jwt:
+  secret: ${JWT_SECRET:your-jwt-secret-key-change-in-production}
+  issuer: ai-wallet-copilot
+  expired_in: 24h
+  refresh_expired_in: 168h # 7 days
+
+# 限流配置
+rate_limit:
+  enabled: true
+  requests_per_second: 100
+  burst: 200
+
+# 监控配置
+monitoring:
+  enable_metrics: true
+  metrics_port: 9090
+  enable_pprof: true
+  pprof_port: 6060
+
+# 日志配置
+logging:
+  format: json # json, text
+  output: stdout # stdout, file, both
+  file_path: ./logs/app.log
+  max_size: 100 # MB
+  max_backups: 3
+  max_age: 7 # days
+  compress: true
