@@ -2,12 +2,15 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/spf13/viper"
 )
+
+var GlobalCfg *Config
 
 // Config 应用配置
 type Config struct {
@@ -222,4 +225,19 @@ func GetEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+func InitConfig(configPath *string) error {
+	log.Printf("Loading config from: %s", *configPath)
+
+	var err error
+	GlobalCfg, err = Load(*configPath)
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+
+	log.Printf("Config loaded successfully: %s v%s [%s]",
+		GlobalCfg.App.Name, GlobalCfg.App.Version, GlobalCfg.App.Environment)
+
+	return nil
 }
