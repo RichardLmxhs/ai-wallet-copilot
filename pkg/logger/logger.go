@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/RichardLmxhs/ai-wallet-copilot/internal/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -39,6 +40,37 @@ type Config struct {
 
 // Field 日志字段类型
 type Field = zapcore.Field
+
+// InitLogger 初始化日志
+func InitLogger(cfg *config.Config) error {
+	logConfig := Config{
+		Level:      cfg.App.LogLevel,
+		Format:     cfg.Logging.Format,
+		Output:     cfg.Logging.Output,
+		FilePath:   cfg.Logging.FilePath,
+		MaxSize:    cfg.Logging.MaxSize,
+		MaxBackups: cfg.Logging.MaxBackups,
+		MaxAge:     cfg.Logging.MaxAge,
+		Compress:   cfg.Logging.Compress,
+		Caller:     true,
+		StackTrace: true,
+	}
+
+	if err := Init(logConfig); err != nil {
+		return fmt.Errorf("init logger: %w", err)
+	}
+
+	// 获取全局 logger 实例用于后续使用
+	Global()
+
+	Info("Logger initialized successfully",
+		String("level", cfg.App.LogLevel),
+		String("format", cfg.Logging.Format),
+		String("output", cfg.Logging.Output),
+	)
+
+	return nil
+}
 
 // Init 初始化全局日志
 func Init(cfg Config) error {

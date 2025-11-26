@@ -2,31 +2,31 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/config"
+	"github.com/RichardLmxhs/ai-wallet-copilot/internal/service/binance"
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/service/http"
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/storage/postgres"
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/storage/redis"
-	logger_ "github.com/RichardLmxhs/ai-wallet-copilot/pkg/logger"
+	"github.com/RichardLmxhs/ai-wallet-copilot/pkg/logger"
 )
 
 var (
-	configPath = flag.String("c", "./configs/config.yaml", "配置文件路径")
-	cfg        *config.Config
+	configDir = flag.String("c", "./configs", "配置文件目录")
+	cfg       *config.Config
 )
 
 func main() {
 	flag.Parse()
 
 	// 1. 加载配置
-	if err := config.InitConfig(configPath); err != nil {
+	if err := config.InitConfig(configDir); err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
 	// 2. 初始化日志
-	err := initLogger()
+	err := logger.InitLogger(cfg)
 	if err != nil {
 		log.Fatalf("Failed to init logger:%v", err)
 	}
@@ -44,6 +44,7 @@ func main() {
 	defer redis.CloseRedis()
 
 	// 5. 初始化其他组件
+	binance.InitBinanceService(cfg)
 	// initAIService()
 	// initBlockchainClients()
 
@@ -52,35 +53,4 @@ func main() {
 
 	// 7. 优雅关闭
 	http.GracefulShutdown(cfg, server)
-}
-
-// initLogger 初始化日志
-func initLogger() error {
-	logConfig := logger_.Config{
-		Level:      cfg.App.LogLevel,
-		Format:     cfg.Logging.Format,
-		Output:     cfg.Logging.Output,
-		FilePath:   cfg.Logging.FilePath,
-		MaxSize:    cfg.Logging.MaxSize,
-		MaxBackups: cfg.Logging.MaxBackups,
-		MaxAge:     cfg.Logging.MaxAge,
-		Compress:   cfg.Logging.Compress,
-		Caller:     true,
-		StackTrace: true,
-	}
-
-	if err := logger_.Init(logConfig); err != nil {
-		return fmt.Errorf("init logger: %w", err)
-	}
-
-	// 获取全局 logger 实例用于后续使用
-	logger_.Global()
-
-	logger_.Info("Logger initialized successfully",
-		logger_.String("level", cfg.App.LogLevel),
-		logger_.String("format", cfg.Logging.Format),
-		logger_.String("output", cfg.Logging.Output),
-	)
-
-	return nil
 }

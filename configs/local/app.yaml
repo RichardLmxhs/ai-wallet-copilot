@@ -31,22 +31,15 @@ ai:
 # 区块链配置
 chains:
   ethereum:
-    mainnet:
-      rpc_url: https://mainnet.infura.io/v3/your-key
-      chain_id: 1
-      timeout: 10s
-      max_retries: 3
-    goerli:
-      rpc_url: https://goerli.infura.io/v3/your-key
-      chain_id: 5
-      timeout: 10s
-      max_retries: 3
-  polygon:
-    mainnet:
-      rpc_url: https://polygon-rpc.com
-      chain_id: 137
-      timeout: 10s
-      max_retries: 3
+    rpc_url: https://eth-mainnet.g.alchemy.com/v2/G0WKDnDtRiKBjGVyLLQVw
+    chain_id: 1
+    timeout: 10s
+    max_retries: 3
+
+binance:
+  base_url: "https://api.binance.com"
+  AK: "0ePUJP0UI5kXmIkrpN3gDwaRlerr2XVMzXnsiozFfFqpXnePl4WfAC3CU4SQfi1N"
+  SK: "fm93jrYo5EfLghQG6oyg0QH1m98Ev8vXT61y6L9Ipz6hgp10aR7ODL1Wx4QariF3"
 
 # 数据库配置
 database:

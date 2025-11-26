@@ -10,8 +10,7 @@ CREATE TABLE wallets
     last_indexed_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     metadata        JSONB,                                       -- 可扩展：额外标签/备注
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    tags       JSONB                                             -- 标签值
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
 CREATE INDEX idx_wallets_chain_last_indexed ON wallets (chain, last_indexed_at);

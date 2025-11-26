@@ -4,10 +4,18 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"strings"
 	"time"
 
 	"github.com/spf13/viper"
+)
+
+const (
+	Development    = "dev"
+	Local          = "local"
+	Production     = "prod"
+	ConfigFileName = "app.yaml"
 )
 
 var GlobalCfg *Config
@@ -24,6 +32,7 @@ type Config struct {
 	RateLimit  RateLimitConfig  `mapstructure:"rate_limit"`
 	Monitoring MonitoringConfig `mapstructure:"monitoring"`
 	Logging    LoggingConfig    `mapstructure:"logging"`
+	BinanceAPI BinanceAPI       `mapstructure:"binance"`
 }
 
 // AppConfig 应用配置
@@ -69,8 +78,14 @@ type ChainConfig struct {
 
 // ChainsConfig 区块链配置
 type ChainsConfig struct {
-	Ethereum map[string]ChainConfig `mapstructure:"ethereum"`
-	Polygon  map[string]ChainConfig `mapstructure:"polygon"`
+	Ethereum ChainConfig `mapstructure:"ethereum"`
+	Polygon  ChainConfig `mapstructure:"polygon"`
+}
+
+type BinanceAPI struct {
+	BaseURL string `mapstructure:"base_url"`
+	AK      string `mapstructure:"AK"`
+	SK      string `mapstructure:"SK"`
 }
 
 // DatabaseConfig 数据库配置
@@ -227,11 +242,17 @@ func GetEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-func InitConfig(configPath *string) error {
-	log.Printf("Loading config from: %s", *configPath)
+func InitConfig(configDir *string) error {
+	env := os.Getenv("AI_WALLET_ENV")
+	if env == "" {
+		env = Local
+	}
+
+	configFile := path.Join(*configDir, env, ConfigFileName)
+	log.Printf("Loading config from: %s", configFile)
 
 	var err error
-	GlobalCfg, err = Load(*configPath)
+	GlobalCfg, err = Load(configFile)
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"math/big"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -12,7 +13,7 @@ type Wallet struct {
 	Chain         string          `gorm:"type:text;default:ethereum;not null"`
 	LastBlock     *int64          `gorm:"type:bigint"`
 	TotalValueUSD decimal.Decimal `gorm:"type:numeric(30,8)"`
-	TokenCount    int             `gorm:"type:int;default:0"`
+	TokenCount    big.Int         `gorm:"type:int;default:0"`
 	NFTCount      int             `gorm:"type:int;default:0"`
 	LastIndexedAt time.Time       `gorm:"type:timestamptz;default:now()"`
 	Metadata      datatypes.JSON  `gorm:"type:jsonb"`

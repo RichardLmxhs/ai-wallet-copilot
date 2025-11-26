@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/config"
+	"github.com/RichardLmxhs/ai-wallet-copilot/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -70,6 +71,18 @@ func InitDatabase(cfg *config.Config) error {
 	}
 
 	GlobalDB = db
+
+	GlobalDB.AutoMigrate(
+		&models.AnalysisResult{},
+		&models.ContractCall{},
+		&models.Job{},
+		&models.PriceCache{},
+		&models.RiskFlag{},
+		&models.TokenTransfer{},
+		&models.User{},
+		&models.Wallet{},
+		&models.WalletTransaction{},
+	)
 
 	log.Println("Database (pgx) connection established successfully")
 	return nil
