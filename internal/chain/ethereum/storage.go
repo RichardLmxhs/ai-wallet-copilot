@@ -65,7 +65,7 @@ func (e *EthereumChain) saveBalanceToDB(ctx context.Context, address string, wei
 
 // LatestBlock 获取最新区块高度
 func (e *EthereumChain) LatestBlock(ctx context.Context) (int64, error) {
-	header, err := e.HeaderByNumber(ctx, nil)
+	header, err := e.Client.HeaderByNumber(ctx, nil)
 	if err != nil {
 		logger.Global().WithContext(ctx).Error("get latest block error", zap.Error(err))
 		return 0, err

@@ -25,7 +25,7 @@ type Config struct {
 	App        AppConfig        `mapstructure:"app"`
 	Server     ServerConfig     `mapstructure:"server"`
 	AI         AIConfig         `mapstructure:"ai"`
-	Chains     ChainsConfig     `mapstructure:"chains"`
+	Alchemy    Alchemy          `mapstructure:"chains"`
 	Database   DatabaseConfig   `mapstructure:"database"`
 	Redis      RedisConfig      `mapstructure:"redis"`
 	JWT        JWTConfig        `mapstructure:"jwt"`
@@ -70,16 +70,16 @@ type AIConfig struct {
 
 // ChainConfig 单个链配置
 type ChainConfig struct {
-	RPCURL     string        `mapstructure:"rpc_url"`
 	ChainID    int64         `mapstructure:"chain_id"`
 	Timeout    time.Duration `mapstructure:"timeout"`
 	MaxRetries int           `mapstructure:"max_retries"`
 }
 
-// ChainsConfig 区块链配置
-type ChainsConfig struct {
-	Ethereum ChainConfig `mapstructure:"ethereum"`
-	Polygon  ChainConfig `mapstructure:"polygon"`
+// Alchemy 区块链配置
+type Alchemy struct {
+	Endpoint string `mapstructure:"endpoint"`
+	RPCURL   string `mapstructure:"rpc_url"`
+	APIKey   string `mapstructure:"api_key"`
 }
 
 type BinanceAPI struct {

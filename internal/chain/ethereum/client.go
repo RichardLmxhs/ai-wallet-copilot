@@ -12,12 +12,13 @@ import (
 )
 
 type EthereumChain struct {
-	*ethclient.Client
+	Client *ethclient.Client
 }
 
 func NewChain() (*EthereumChain, error) {
-	url := config.GlobalCfg.Chains.Ethereum.RPCURL
-	rpcClient, err := ethclient.Dial(url)
+	url := config.GlobalCfg.Alchemy.RPCURL
+	APIKey := config.GlobalCfg.Alchemy.APIKey
+	rpcClient, err := ethclient.Dial(url + APIKey)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +38,7 @@ func (e *EthereumChain) GetBalance(ctx context.Context, address string, forceUpd
 
 	// 2. 从链上获取最新数据
 	addr := common.HexToAddress(address)
-	wei, err := e.BalanceAt(ctx, addr, nil)
+	wei, err := e.Client.BalanceAt(ctx, addr, nil)
 	if err != nil {
 		return nil, err
 	}

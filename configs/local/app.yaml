@@ -28,18 +28,10 @@ ai:
   retry_count: 3
   retry_delay: 1s
 
-# 区块链配置
-chains:
-  ethereum:
-    rpc_url: https://eth-mainnet.g.alchemy.com/v2/G0WKDnDtRiKBjGVyLLQVw
-    chain_id: 1
-    timeout: 10s
-    max_retries: 3
-
-binance:
-  base_url: "https://api.binance.com"
-  AK: "0ePUJP0UI5kXmIkrpN3gDwaRlerr2XVMzXnsiozFfFqpXnePl4WfAC3CU4SQfi1N"
-  SK: "fm93jrYo5EfLghQG6oyg0QH1m98Ev8vXT61y6L9Ipz6hgp10aR7ODL1Wx4QariF3"
+alchemy:
+  rpc_url: https://eth-mainnet.g.alchemy.com/v2/
+  api_key: G0WKDnDtRiKBjGVyLLQVw
+  endpoint: https://api.g.alchemy.com
 
 # 数据库配置
 database:
