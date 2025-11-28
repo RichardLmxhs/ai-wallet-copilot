@@ -4,7 +4,6 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/RichardLmxhs/ai-wallet-copilot/internal/chain"
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/config"
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/storage/redis"
 	"github.com/ethereum/go-ethereum/common"
@@ -47,9 +46,7 @@ func (e *EthereumChain) GetBalance(ctx context.Context, address string, forceUpd
 	redis.GlobalRDB.Set(ctx, cacheKey, wei.String(), BalanceCacheTTL)
 
 	// 4. 更新PostgreSQL
-	go e.saveBalanceToDB(ctx, address, wei)
+	//go e.saveBalanceToDB(ctx, address, wei)
 
 	return wei, nil
 }
-
-var _ chain.Chain = EthereumChain{}

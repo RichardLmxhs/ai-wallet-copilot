@@ -3,51 +3,53 @@ CREATE TABLE wallets
 (
     address         TEXT PRIMARY KEY,                            -- checksummed address 建议在入库时统一格式
     chain           TEXT NOT NULL            DEFAULT 'ethereum', -- 'ethereum', 'arbitrum', etc.
-    chain_coins BIGINT DEFAULT 0,
+    chain_coins     BIGINT                   DEFAULT 0,
     last_indexed_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     metadata        JSONB,                                       -- 可扩展：额外标签/备注
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
 CREATE INDEX idx_wallets_chain_last_indexed ON wallets (created_at, last_indexed_at);
 
-CREATE TABLE wallet_tokens (
+CREATE TABLE wallet_tokens
+(
     wallet_address TEXT PRIMARY KEY,
-    chain TEXT NOT NULL,
-    token_address TEXT NOT NULL,
-    balance NUMERIC(30, 8),
-    symbol TEXT,
-    decimals INT,
-    metadata JSONB,
-    updated_at TIMESTAMPTZ DEFAULT now()
+    chain          TEXT NOT NULL,
+    token_address  TEXT NOT NULL,
+    balance        NUMERIC(30, 8),
+    symbol         TEXT,
+    decimals       INT,
+    metadata       JSONB,
+    updated_at     TIMESTAMPTZ DEFAULT now()
 );
 CREATE INDEX idx_wallet_tokens_last_indexed ON wallet_tokens (token_address, updated_at);
 
 
-CREATE TABLE wallet_nfts (
-    wallet_address TEXT PRIMARY KEY,
-    chain TEXT NOT NULL,
+CREATE TABLE wallet_nfts
+(
+    wallet_address   TEXT PRIMARY KEY,
+    chain            TEXT NOT NULL,
     contract_address TEXT NOT NULL,
-    token_id TEXT NOT NULL,
-    collection TEXT,
-    image TEXT,
-    metadata JSONB,
-    updated_at TIMESTAMPTZ DEFAULT now()
+    token_id         TEXT NOT NULL,
+    collection       TEXT,
+    image            TEXT,
+    metadata         JSONB,
+    updated_at       TIMESTAMPTZ DEFAULT now()
 );
 CREATE INDEX idx_wallet_nfts_last_indexed ON wallet_nfts (contract_address, updated_at);
 
-CREATE TABLE token_price (
-    token_address TEXT PRIMARY KEY NOT NULL,  -- TOKEN合约地址
-    chain TEXT NOT NULL,
-    symbol TEXT,
-    price_usd numeric(30,8),
-    logo text,
-    updated_at TIMESTAMPTZ DEFAULT now(),
-    metadata jsonb
+CREATE TABLE token_price
+(
+    token_address TEXT PRIMARY KEY NOT NULL, -- TOKEN合约地址
+    chain         TEXT             NOT NULL,
+    symbol        TEXT,
+    price_usd     numeric(30, 8),
+    logo          text,
+    updated_at    TIMESTAMPTZ DEFAULT now(),
+    metadata      jsonb
 );
 CREATE INDEX idx_token_price ON token_price (token_address, updated_at);
-
 
 
 -- wallet_transactions: 交易/tx 基本信息（按链 + txhash 唯一）
@@ -153,10 +155,13 @@ CREATE TABLE price_cache
 (
     id            BIGSERIAL PRIMARY KEY,
     token_address TEXT,
-    chain         TEXT NOT NULL            DEFAULT 'ethereum',
+    chain         TEXT NOT NULL DEFAULT 'ethereum',
     price_usd     NUMERIC(30, 8),
     source        TEXT,
-    ts            TIMESTAMP WITH TIME ZONE DEFAULT now()
+    symbol        TEXT,
+    logo          text,
+    updated_at    TIMESTAMPTZ   DEFAULT now(),
+    metadata      jsonb
 );
 
 CREATE INDEX idx_price_token_time ON price_cache (token_address, ts DESC);
