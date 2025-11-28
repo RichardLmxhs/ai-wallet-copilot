@@ -3,38 +3,52 @@ CREATE TABLE wallets
 (
     address         TEXT PRIMARY KEY,                            -- checksummed address 建议在入库时统一格式
     chain           TEXT NOT NULL            DEFAULT 'ethereum', -- 'ethereum', 'arbitrum', etc.
-    last_block      BIGINT,                                      -- 最后索引到的区块高度
-    total_value_usd NUMERIC(30, 8),                              -- 快照计算的总市值（美元）
-    token_count     INT                      DEFAULT 0,
-    nft_count       INT                      DEFAULT 0,
+    chain_coins BIGINT DEFAULT 0,
     last_indexed_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     metadata        JSONB,                                       -- 可扩展：额外标签/备注
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
-CREATE INDEX idx_wallets_chain_last_indexed ON wallets (chain, last_indexed_at);
+CREATE INDEX idx_wallets_chain_last_indexed ON wallets (created_at, last_indexed_at);
 
--- wallet_assets: 每次快照的 token/nft 信息（一个 address + token 为一行）
-CREATE TABLE wallet_assets
-(
-    id              BIGSERIAL PRIMARY KEY,
-    wallet_address  TEXT NOT NULL REFERENCES wallets (address) ON DELETE CASCADE,
-    chain           TEXT NOT NULL            DEFAULT 'ethereum',
-    token_address   TEXT,            -- 对于 native token (ETH) 可为 NULL 或 'ETH'
-    token_id        TEXT,            -- NFT 的 tokenId（string）
-    token_type      TEXT,            -- 'ERC20' | 'ERC721' | 'ERC1155' | 'NATIVE'
-    symbol          TEXT,
-    name            TEXT,
-    balance         NUMERIC(50, 18), -- token balance 原始精度
-    balance_decimal INT,             -- token decimals
-    balance_usd     NUMERIC(30, 8),  -- 估算 USD 值
-    last_updated    TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    extra           JSONB            -- 存 metadata（image url, openSea data 等）
+CREATE TABLE wallet_tokens (
+    wallet_address TEXT PRIMARY KEY,
+    chain TEXT NOT NULL,
+    token_address TEXT NOT NULL,
+    balance NUMERIC(30, 8),
+    symbol TEXT,
+    decimals INT,
+    metadata JSONB,
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
+CREATE INDEX idx_wallet_tokens_last_indexed ON wallet_tokens (token_address, updated_at);
 
-CREATE INDEX idx_wallet_assets_wallet ON wallet_assets (wallet_address);
-CREATE INDEX idx_wallet_assets_tokenaddr ON wallet_assets (token_address);
+
+CREATE TABLE wallet_nfts (
+    wallet_address TEXT PRIMARY KEY,
+    chain TEXT NOT NULL,
+    contract_address TEXT NOT NULL,
+    token_id TEXT NOT NULL,
+    collection TEXT,
+    image TEXT,
+    metadata JSONB,
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_wallet_nfts_last_indexed ON wallet_nfts (contract_address, updated_at);
+
+CREATE TABLE token_price (
+    token_address TEXT PRIMARY KEY NOT NULL,  -- TOKEN合约地址
+    chain TEXT NOT NULL,
+    symbol TEXT,
+    price_usd numeric(30,8),
+    logo text,
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    metadata jsonb
+);
+CREATE INDEX idx_token_price ON token_price (token_address, updated_at);
+
+
 
 -- wallet_transactions: 交易/tx 基本信息（按链 + txhash 唯一）
 CREATE TABLE wallet_transactions
