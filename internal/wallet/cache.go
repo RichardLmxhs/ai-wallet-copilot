@@ -54,7 +54,7 @@ type NFTDetail struct {
 	Address         string `json:"address"`
 }
 
-func (w *Wallet) GetWalletDetail(ctx context.Context, walletAddress string) (*WalletDetail, error) {
+func (w *Wallet) GetWalletDetailCache(ctx context.Context, walletAddress string) (*WalletDetail, error) {
 	detail := &WalletDetail{}
 	err := redis.GlobalRDB.Get(ctx, fmt.Sprintf(WalletPrefix+walletAddress)).Scan(detail)
 	if err != nil {

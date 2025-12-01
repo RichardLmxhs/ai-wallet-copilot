@@ -1,6 +1,20 @@
 package wallet
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"time"
+)
+
+var (
+	category = []string{
+		"erc20",
+		"erc1155",
+		"erc721",
+		"external",
+		"internal",
+	}
+)
 
 type WalletBalanceRequest struct {
 	Addresses    []Addresses `json:"addresses"`
@@ -57,4 +71,59 @@ type NFTData struct {
 	OwnedNfts  []OwnedNfts `json:"ownedNfts"`
 	TotalCount int         `json:"totalCount"`
 	PageKey    any         `json:"pageKey"`
+}
+
+type WalletTransfersRequest struct {
+	WithMetadata bool     `json:"withMetadata"`
+	Category     []string `json:"category"`
+	FromAddress  string   `json:"fromAddress"`
+	ToAddress    string   `json:"toAddress"`
+}
+
+type RawContract struct {
+	Value   string `json:"value"`
+	Address string `json:"address"`
+	Decimal string `json:"decimal"`
+}
+type Metadata struct {
+	BlockTimestamp time.Time `json:"blockTimestamp"`
+}
+type WalletTransfersResponse struct {
+	BlockNum        string      `json:"blockNum"`
+	UniqueID        string      `json:"uniqueId"`
+	Hash            string      `json:"hash"`
+	From            string      `json:"from"`
+	To              string      `json:"to"`
+	Value           float64     `json:"value"`
+	Erc721TokenID   interface{} `json:"erc721TokenId"`
+	Erc1155Metadata interface{} `json:"erc1155Metadata"`
+	TokenID         interface{} `json:"tokenId"`
+	Asset           string      `json:"asset"`
+	Category        string      `json:"category"`
+	RawContract     RawContract `json:"rawContract"`
+	Metadata        Metadata    `json:"metadata"`
+}
+
+// JsonRPC structures
+type jsonRPCRequest struct {
+	JSONRPC string      `json:"jsonrpc"`
+	ID      uint64      `json:"id"`
+	Method  string      `json:"method"`
+	Params  interface{} `json:"params"`
+}
+
+type jsonRPCResponse struct {
+	JSONRPC string           `json:"jsonrpc"`
+	ID      uint64           `json:"id"`
+	Result  *json.RawMessage `json:"result,omitempty"`
+	Error   *rpcError        `json:"error,omitempty"`
+}
+type rpcError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
+}
+
+func (e *rpcError) Error() string {
+	return fmt.Sprintf("rpc error %d: %s", e.Code, e.Message)
 }
