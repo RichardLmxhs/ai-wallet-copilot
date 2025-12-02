@@ -14,6 +14,7 @@ var (
 		"external",
 		"internal",
 	}
+	maxCount = 500
 )
 
 type WalletBalanceRequest struct {
@@ -74,10 +75,10 @@ type NFTData struct {
 }
 
 type WalletTransfersRequest struct {
-	WithMetadata bool     `json:"withMetadata"`
-	Category     []string `json:"category"`
-	FromAddress  string   `json:"fromAddress"`
-	ToAddress    string   `json:"toAddress"`
+	Category    []string `json:"category"`
+	FromAddress string   `json:"fromAddress"`
+	ToAddress   string   `json:"toAddress"`
+	MaxCount    string   `json:"maxCount"` // eg. 0x03
 }
 
 type RawContract struct {
@@ -88,7 +89,13 @@ type RawContract struct {
 type Metadata struct {
 	BlockTimestamp time.Time `json:"blockTimestamp"`
 }
+
 type WalletTransfersResponse struct {
+	Transfers []Transfers `json:"transfers"`
+	PageKey   string      `json:"pageKey"`
+}
+
+type Transfers struct {
 	BlockNum        string      `json:"blockNum"`
 	UniqueID        string      `json:"uniqueId"`
 	Hash            string      `json:"hash"`
@@ -101,7 +108,6 @@ type WalletTransfersResponse struct {
 	Asset           string      `json:"asset"`
 	Category        string      `json:"category"`
 	RawContract     RawContract `json:"rawContract"`
-	Metadata        Metadata    `json:"metadata"`
 }
 
 // JsonRPC structures

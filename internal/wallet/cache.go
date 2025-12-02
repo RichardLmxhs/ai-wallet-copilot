@@ -2,6 +2,7 @@ package wallet
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"time"
@@ -10,10 +11,12 @@ import (
 )
 
 const (
-	WalletPrefix               = "wallet:detail:"
+	WalletMetaPrefix           = "wallet:detail_meta:"
+	WalletTransfersPrefix      = "wallet:detail_transfers:"
 	WalletNativeTokenTTLPrefix = "wallet:NativeToken:TTL:%s"
 	WalletTokenTTLPrefix       = "wallet:Token:TTL:{%s}"
 	WalletNFTTTLPrefix         = "wallet:NFT:TTL:{%s}"
+	WalletTransfersTTLPrefix   = "wallet:Transfers:TTL:{%s}"
 
 	DefaultWalletTTL = 30 * time.Minute
 	DefaultETHTTL    = 1 * time.Minute
@@ -22,9 +25,21 @@ const (
 )
 
 type WalletDetail struct {
+	UserAddress string                   `json:"userAddress"`
+	TotalValue  *big.Float               `json:"totalValue"`
+	ChainData   map[string]ChainData     `json:"chainData"`
+	Transfers   *WalletTransfersResponse `json:"transfers"`
+}
+
+type WalletMetaInfo struct {
 	UserAddress string               `json:"userAddress"`
 	TotalValue  *big.Float           `json:"totalValue"`
 	ChainData   map[string]ChainData `json:"chainData"`
+}
+
+type WalletTransfersInfo struct {
+	UserAddress string                   `json:"userAddress"`
+	Transfers   *WalletTransfersResponse `json:"transfers"`
 }
 
 type ChainData struct {
@@ -55,17 +70,58 @@ type NFTDetail struct {
 }
 
 func (w *Wallet) GetWalletDetailCache(ctx context.Context, walletAddress string) (*WalletDetail, error) {
-	detail := &WalletDetail{}
-	err := redis.GlobalRDB.Get(ctx, fmt.Sprintf(WalletPrefix+walletAddress)).Scan(detail)
+	walletMetaInfoJson, walletTransfersInfoJson := []byte{}, []byte{}
+	walletMetaInfo := &WalletMetaInfo{}
+	walletTransfersInfo := &WalletTransfersInfo{}
+	err := redis.GlobalRDB.Get(ctx, fmt.Sprintf(WalletMetaPrefix+walletAddress)).Scan(walletMetaInfoJson)
 	if err != nil {
 		return nil, err
+	}
+
+	err = redis.GlobalRDB.Get(ctx, fmt.Sprintf(WalletTransfersPrefix+walletAddress)).Scan(walletTransfersInfoJson)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(walletMetaInfoJson, walletMetaInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(walletTransfersInfoJson, walletTransfersInfo)
+	if err != nil {
+		return nil, err
+	}
+	detail := &WalletDetail{
+		UserAddress: walletAddress,
+		TotalValue:  walletMetaInfo.TotalValue,
+		ChainData:   walletMetaInfo.ChainData,
+		Transfers:   walletTransfersInfo.Transfers,
 	}
 	return detail, nil
 }
 
 // SetWalletDetail 存储钱包缓存到redis
 func (w *Wallet) SetWalletDetail(ctx context.Context, walletAddress string, detail *WalletDetail) error {
-	err := redis.GlobalRDB.Set(ctx, fmt.Sprintf(WalletPrefix+walletAddress), detail, DefaultWalletTTL).Err()
+	walletMetaInfo := WalletMetaInfo{
+		UserAddress: walletAddress,
+		TotalValue:  detail.TotalValue,
+		ChainData:   detail.ChainData,
+	}
+	walletMetaInfoJson, _ := json.Marshal(walletMetaInfo)
+
+	walletTransfersInfo := WalletTransfersInfo{
+		UserAddress: walletAddress,
+		Transfers:   detail.Transfers,
+	}
+	walletTransfersInfoJson, _ := json.Marshal(walletTransfersInfo)
+
+	err := redis.GlobalRDB.Set(ctx, fmt.Sprintf(WalletMetaPrefix+walletAddress), walletMetaInfoJson, DefaultWalletTTL).Err()
+	if err != nil {
+		return err
+	}
+
+	err = redis.GlobalRDB.Set(ctx, fmt.Sprintf(WalletTransfersPrefix+walletAddress), walletTransfersInfoJson, DefaultWalletTTL).Err()
 	if err != nil {
 		return err
 	}
@@ -83,6 +139,12 @@ func (w *Wallet) SetWalletDetail(ctx context.Context, walletAddress string, deta
 	}
 
 	err = redis.GlobalRDB.Set(ctx, fmt.Sprintf(WalletNFTTTLPrefix+walletAddress),
+		time.Now().Format(time.RFC3339), -1).Err()
+	if err != nil {
+		return err
+	}
+
+	err = redis.GlobalRDB.Set(ctx, fmt.Sprintf(WalletTransfersTTLPrefix+walletAddress),
 		time.Now().Format(time.RFC3339), -1).Err()
 	if err != nil {
 		return err

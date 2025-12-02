@@ -15,15 +15,17 @@ import (
 
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/config"
 	"github.com/RichardLmxhs/ai-wallet-copilot/pkg/logger"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"go.uber.org/zap"
 )
 
 type Wallet struct {
-	Client      *http.Client
-	MaxRetries  int
-	BackoffBase time.Duration
-	Endpoint    string
-	APIKey      string
+	Client       *http.Client
+	MaxRetries   int
+	BackoffBase  time.Duration
+	Endpoint     string
+	APIKey       string
+	WalletDetail *WalletDetail
 }
 
 func NewWallet() *Wallet {
@@ -160,8 +162,15 @@ func (w *Wallet) GetWalletDetail(ctx context.Context, address string, networks [
 		return nil, err
 	}
 
+	transfersResp, err := w.GetWalletTrans(ctx, address)
+	if err != nil {
+		return nil, err
+	}
+
 	// 构建返回结构
 	wallet, err := w.BuildWalletDetail(ctx, address, tokenResp, nftResp)
+
+	wallet.Transfers = transfersResp
 
 	err = w.SetWalletDetail(ctx, address, wallet)
 	if err != nil {
@@ -249,21 +258,22 @@ func (w *Wallet) GetWalletNFT(ctx context.Context, address string, networks []st
 }
 
 // GetWalletTrans 从alchemy获取钱包历史交易信息
-func (w *Wallet) GetWalletTrans(ctx context.Context, address string) (*[]WalletTransfersResponse, error) {
-	resp := &[]WalletTransfersResponse{}
+func (w *Wallet) GetWalletTrans(ctx context.Context, address string) (*WalletTransfersResponse, error) {
+	maxCountHex := hexutil.EncodeUint64(uint64(maxCount))
+	resp := &WalletTransfersResponse{}
 	// 转出+转入
 	param := []WalletTransfersRequest{
 		{
-			WithMetadata: true,
-			Category:     category,
-			FromAddress:  address,
-			ToAddress:    "",
+			Category:    category,
+			FromAddress: address,
+			ToAddress:   "",
+			MaxCount:    maxCountHex,
 		},
 		{
-			WithMetadata: true,
-			Category:     category,
-			FromAddress:  "",
-			ToAddress:    address,
+			Category:    category,
+			FromAddress: "",
+			ToAddress:   address,
+			MaxCount:    maxCountHex,
 		},
 	}
 	if err := w.CallRPC(ctx, 2, "alchemy_getAssetTransfers", param, resp); err != nil {
