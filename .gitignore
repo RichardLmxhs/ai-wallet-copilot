@@ -12,6 +12,7 @@
 # 环境变量
 .env
 .env.local
+configs/local/app.yaml
 
 # IDE文件
 .idea/
@@ -22,3 +23,5 @@
 # 操作系统文件
 .DS_Store
 Thumbs.db
+
+go.sum

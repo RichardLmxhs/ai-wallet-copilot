@@ -177,6 +177,8 @@ func (w *Wallet) GetWalletDetail(ctx context.Context, address string, networks [
 		return nil, err
 	}
 
+	go w.StoreWalletDetail(context.Background(), address, walletDetail)
+
 	return wallet, err
 }
 
