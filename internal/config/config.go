@@ -57,15 +57,10 @@ type ServerConfig struct {
 
 // AIConfig AI 服务配置
 type AIConfig struct {
-	Provider    string        `mapstructure:"provider"`
-	APIKey      string        `mapstructure:"api_key"`
-	BaseURL     string        `mapstructure:"base_url"`
-	Model       string        `mapstructure:"model"`
-	Temperature float64       `mapstructure:"temperature"`
-	MaxTokens   int           `mapstructure:"max_tokens"`
-	Timeout     time.Duration `mapstructure:"timeout"`
-	RetryCount  int           `mapstructure:"retry_count"`
-	RetryDelay  time.Duration `mapstructure:"retry_delay"`
+	ARKAPIKey        string `mapstructure:"ark_api_key"`
+	ARKModelName     string `mapstructure:"ark_model_name"`
+	CozeloopAPIToken string `mapstructure:"cozeloop_api_token"`
+	CozeWorkSpaceID  string `mapstructure:"coze_workspace_id"`
 }
 
 // ChainConfig 单个链配置
@@ -218,7 +213,7 @@ func (c *Config) Validate() error {
 	if c.Redis.Host == "" {
 		return fmt.Errorf("redis.host is required")
 	}
-	if c.AI.APIKey == "" || c.AI.APIKey == "your-api-key" {
+	if c.AI.ARKAPIKey == "" || c.AI.ARKAPIKey == "your-api-key" {
 		return fmt.Errorf("ai.api_key must be set")
 	}
 	return nil
