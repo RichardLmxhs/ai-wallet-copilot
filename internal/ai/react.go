@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"time"
+	"strings"
 
 	cfg "github.com/RichardLmxhs/ai-wallet-copilot/internal/config"
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/wallet"
@@ -14,19 +14,16 @@ import (
 	clc "github.com/cloudwego/eino-ext/callbacks/cozeloop"
 	"github.com/cloudwego/eino-ext/components/model/ark"
 	"github.com/cloudwego/eino/callbacks"
-	"github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/flow/agent"
 	"github.com/cloudwego/eino/flow/agent/react"
 	"github.com/cloudwego/eino/schema"
 	"github.com/coze-dev/cozeloop-go"
-	"go.uber.org/zap"
 
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/ai/tools"
 )
 
 type WalletAIAnalyze struct {
-	Tools         []tool.InvokableTool
 	WalletDetail  *wallet.WalletDetail
 	AnalyzeStatus AgentStatus
 }
@@ -36,27 +33,22 @@ type AgentStatus struct {
 	Result string
 }
 
-func NewWalletAIAnalyze(toolsName []string, walletDetail *wallet.WalletDetail) *WalletAIAnalyze {
+func NewWalletAIAnalyze(walletDetail *wallet.WalletDetail) *WalletAIAnalyze {
 	w := &WalletAIAnalyze{
 		AnalyzeStatus: AgentStatus{
 			Status: StatusStart,
 			Result: "",
 		},
 	}
-	for _, toolName := range toolsName {
-		if t, ok := tools.ToolsMap[toolName]; ok {
-			w.Tools = append(w.Tools, t())
-		}
-	}
 	w.WalletDetail = walletDetail
 	return w
 }
 
-func (w *WalletAIAnalyze) Run(ctx context.Context) {
-	agentTools := []tool.BaseTool{}
-	for _, t := range w.Tools {
-		agentTools = append(agentTools, t)
-	}
+// Run 执行钱包分析，流式返回结果并记录聚合结果
+// outputChan: 用于流式返回分析结果的通道
+// 返回聚合后的完整结果和可能的错误
+func (w *WalletAIAnalyze) Run(ctx context.Context, outputChan chan<- string) (string, error) {
+	alchemyMcpTools := tools.GetAlchemyMCPTool(ctx)
 
 	cozeloopApiToken := cfg.GlobalCfg.AI.CozeloopAPIToken
 	cozeloopWorkspaceID := cfg.GlobalCfg.AI.CozeWorkSpaceID
@@ -70,7 +62,8 @@ func (w *WalletAIAnalyze) Run(ctx context.Context) {
 			cozeloop.WithWorkspaceID(cozeloopWorkspaceID),
 		)
 		if err != nil {
-			panic(err)
+			logger.Global().WithContext(ctx).Error("failed to create cozeloop client:", logger.Errors(err))
+			return "", err
 		}
 		defer client.Close(ctx)
 		handlers = append(handlers, clc.NewLoopHandler(client))
@@ -84,20 +77,20 @@ func (w *WalletAIAnalyze) Run(ctx context.Context) {
 
 	arkModel, err := ark.NewChatModel(ctx, config)
 	if err != nil {
-		logger.Global().WithContext(ctx).Error("failed to create chat model:", zap.Error(err))
-		return
+		logger.Global().WithContext(ctx).Error("failed to create chat model:", logger.Errors(err))
+		return "", err
 	}
 
 	ragent, err := react.NewAgent(ctx, &react.AgentConfig{
 		ToolCallingModel: arkModel,
 		ToolsConfig: compose.ToolsNodeConfig{
-			Tools: agentTools,
+			Tools: alchemyMcpTools,
 		},
 		// StreamToolCallChecker: toolCallChecker, // uncomment it to replace the default tool call checker with custom one
 	})
 	if err != nil {
-		logger.Global().WithContext(ctx).Error("failed to create agent: ", zap.Error(err))
-		return
+		logger.Global().WithContext(ctx).Error("failed to create agent: ", logger.Errors(err))
+		return "", err
 	}
 	opt := []agent.AgentOption{
 		agent.WithComposeOptions(compose.WithCallbacks(&LoggerCallback{})),
@@ -115,32 +108,43 @@ func (w *WalletAIAnalyze) Run(ctx context.Context) {
 		},
 	}, opt...)
 	if err != nil {
-		logger.Global().WithContext(ctx).Error("failed to stream: %v", zap.Error(err))
-		return
+		logger.Global().WithContext(ctx).Error("failed to stream: %v", logger.Errors(err))
+		return "", err
 	}
 
 	defer sr.Close() // remember to close the stream
 
 	logger.Global().WithContext(ctx).Info("\n\n===== start streaming =====\n\n")
 
+	// 记录完整结果
+	var fullResult strings.Builder
+
 	for {
 		msg, err := sr.Recv()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				// finish
+				// 流式传输结束
+				close(outputChan)
 				break
 			}
-			// error
-			logger.Global().WithContext(ctx).Warn("failed to recv: %v", zap.Error(err))
-			return
+			// 发生错误，关闭通道并返回错误
+			close(outputChan)
+			logger.Global().WithContext(ctx).Warn("failed to recv: %v", logger.Errors(err))
+			return "", err
 		}
 
-		// 打字机打印
-		logs.Tokenf("%v", msg.Content)
+		// 将结果写入输出通道
+		if msg.Content != "" {
+			outputChan <- msg.Content
+			// 同时记录到完整结果中
+			fullResult.WriteString(msg.Content)
+		}
 	}
 
-	logs.Infof("\n\n===== finished =====\n")
-	time.Sleep(2 * time.Second)
+	logger.Global().WithContext(ctx).Info("\n\n===== finished =====\n")
+
+	// 返回完整聚合结果
+	return fullResult.String(), nil
 }
 
 type LoggerCallback struct {

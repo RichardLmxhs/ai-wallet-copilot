@@ -3,13 +3,45 @@ package tools
 import (
 	"context"
 	"fmt"
+	"log"
 
+	mcpp "github.com/cloudwego/eino-ext/components/tool/mcp"
+	"github.com/cloudwego/eino/components/tool"
 	"github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
 type AlchemyMCPClient struct {
 	client *client.Client
+}
+
+func GetAlchemyMCPTool(ctx context.Context) []tool.BaseTool {
+	alchemyMcp, err := NewAlchemyMCPClient("xxx")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = alchemyMcp.client.Start(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	initRequest := mcp.InitializeRequest{}
+	initRequest.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION
+	initRequest.Params.ClientInfo = mcp.Implementation{
+		Name:    "example-client",
+		Version: "1.0.0",
+	}
+
+	_, err = alchemyMcp.client.Initialize(ctx, initRequest)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tools, err := mcpp.GetTools(ctx, &mcpp.Config{Cli: alchemyMcp.client})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return tools
 }
 
 // NewAlchemyMCPClient 创建一个新的 Alchemy MCP 客户端
