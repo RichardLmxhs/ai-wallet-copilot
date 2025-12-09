@@ -10,11 +10,14 @@ require (
 	github.com/cloudwego/eino v0.7.7
 	github.com/cloudwego/eino-ext/callbacks/cozeloop v0.1.6
 	github.com/cloudwego/eino-ext/components/model/ark v0.1.53
+	github.com/cloudwego/eino-ext/components/tool/mcp v0.0.8
 	github.com/coze-dev/cozeloop-go v0.1.17
 	github.com/ethereum/go-ethereum v1.16.7
 	github.com/fbsobreira/gotron-sdk v0.24.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-redis/redis/v8 v8.11.0
+	github.com/mark3labs/mcp-go v0.43.2
+	github.com/modelcontextprotocol/go-sdk v1.1.0
 	github.com/mr-tron/base58 v1.2.0
 	github.com/shopspring/decimal v1.2.0
 	github.com/spf13/viper v1.21.0
@@ -64,10 +67,12 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.4 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/google/jsonschema-go v0.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/goph/emperror v0.17.2 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/holiman/uint256 v1.3.2 // indirect
+	github.com/invopop/jsonschema v0.13.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -111,12 +116,14 @@ require (
 	github.com/volcengine/volcengine-go-sdk v1.1.49 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/yargevad/filepathx v1.0.0 // indirect
+	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/arch v0.19.0 // indirect
 	golang.org/x/crypto v0.43.0 // indirect
 	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792 // indirect
 	golang.org/x/net v0.46.0 // indirect
+	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.37.0 // indirect
 	golang.org/x/text v0.30.0 // indirect
