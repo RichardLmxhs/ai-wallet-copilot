@@ -12,11 +12,14 @@ import (
 
 	"github.com/RichardLmxhs/ai-wallet-copilot/api"
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/config"
+	"github.com/RichardLmxhs/ai-wallet-copilot/internal/service"
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/service/binance"
+	"github.com/RichardLmxhs/ai-wallet-copilot/internal/service/mcp"
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/storage/postgres"
 	"github.com/RichardLmxhs/ai-wallet-copilot/internal/storage/redis"
 	"github.com/RichardLmxhs/ai-wallet-copilot/pkg/logger"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 var (
@@ -52,7 +55,13 @@ func main() {
 
 	// 5. 初始化其他组件
 	binance.InitBinanceService(cfg)
-	// initAIService()
+
+	serviceConfig := service.ServiceConfig{AlchemyConfig: mcp.AlchemyMCPConfig{APIKey: cfg.Alchemy.APIKey}}
+	if err := service.InitLocalMCPService(serviceConfig); err != nil {
+		logger.Global().Error("init local mcp service error", zap.Error(err))
+		return
+	}
+
 	// initBlockchainClients()
 
 	// 6. 启动 HTTP 服务器

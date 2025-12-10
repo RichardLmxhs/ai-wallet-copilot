@@ -9,6 +9,7 @@ import (
 	"github.com/RichardLmxhs/ai-wallet-copilot/pkg/logger"
 	"github.com/RichardLmxhs/ai-wallet-copilot/pkg/utils"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func GetWalletAnalyze(c *gin.Context) {
@@ -31,7 +32,7 @@ func GetWalletAnalyze(c *gin.Context) {
 
 	walletDetail, err := walletClient.GetWalletDetail(c, address, network)
 	if err != nil {
-		logger.Global().WithContext(c).Error("failed to get wallet detail:", logger.Errors(err))
+		logger.Global().WithContext(c).Error("failed to get wallet detail:", zap.Error(err))
 		c.JSON(400, schema.ErrInternal)
 		return
 	}
@@ -51,7 +52,7 @@ func GetWalletAnalyze(c *gin.Context) {
 		defer close(resultChan)
 		fullResult, err := walletAIAnalyze.Run(c, resultChan)
 		if err != nil {
-			logger.Global().WithContext(c).Error("AI analysis failed:", logger.Errors(err))
+			logger.Global().WithContext(c).Error("AI analysis failed:", zap.Error(err))
 			return
 		}
 

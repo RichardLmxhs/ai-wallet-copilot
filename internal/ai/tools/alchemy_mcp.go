@@ -11,16 +11,15 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
+var GlobalAlchemyClient *AlchemyMCPClient
+
 type AlchemyMCPClient struct {
 	client *client.Client
 }
 
 func GetAlchemyMCPTool(ctx context.Context) []tool.BaseTool {
-	alchemyMcp, err := NewAlchemyMCPClient("xxx")
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = alchemyMcp.client.Start(ctx)
+	alchemyMcp := GlobalAlchemyClient
+	err := alchemyMcp.client.Start(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,8 +74,11 @@ func NewAlchemyMCPClient(apiKey string) (*AlchemyMCPClient, error) {
 		mcpClient.Close()
 		return nil, fmt.Errorf("failed to initialize client: %w", err)
 	}
-
-	return &AlchemyMCPClient{
+	c := &AlchemyMCPClient{
 		client: mcpClient,
-	}, nil
+	}
+
+	GlobalAlchemyClient = c
+
+	return c, nil
 }
