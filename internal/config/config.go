@@ -59,6 +59,7 @@ type ServerConfig struct {
 type AIConfig struct {
 	ARKAPIKey        string `mapstructure:"ark_api_key"`
 	ARKModelName     string `mapstructure:"ark_model_name"`
+	ARKBaseURL       string `mapstructure:"ark_base_url"`
 	CozeloopAPIToken string `mapstructure:"cozeloop_api_token"`
 	CozeWorkSpaceID  string `mapstructure:"coze_workspace_id"`
 }

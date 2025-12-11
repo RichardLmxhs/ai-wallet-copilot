@@ -54,6 +54,7 @@ func (w *WalletAIAnalyze) Run(ctx context.Context, outputChan chan<- string) (st
 	cozeloopWorkspaceID := cfg.GlobalCfg.AI.CozeWorkSpaceID
 	arkApiKey := cfg.GlobalCfg.AI.ARKAPIKey
 	arkModelName := cfg.GlobalCfg.AI.ARKModelName
+	arkBaseUrl := cfg.GlobalCfg.AI.ARKBaseURL
 
 	var handlers []callbacks.Handler
 	if cozeloopApiToken != "" && cozeloopWorkspaceID != "" {
@@ -71,8 +72,9 @@ func (w *WalletAIAnalyze) Run(ctx context.Context, outputChan chan<- string) (st
 	callbacks.AppendGlobalHandlers(handlers...)
 
 	config := &ark.ChatModelConfig{
-		APIKey: arkApiKey,
-		Model:  arkModelName,
+		BaseURL: arkBaseUrl,
+		APIKey:  arkApiKey,
+		Model:   arkModelName,
 	}
 
 	arkModel, err := ark.NewChatModel(ctx, config)
